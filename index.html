@@ -7,6 +7,12 @@
 	<meta name="description" content="Swipe is a lightweight game platform for quick browser games. Play, discover, and share games — coming soon." />
 	<link rel="icon" href="data:;base64,iVBORw0KGgo=" />
 	<style>
+		/* minimal helpers so we don't require Tailwind */
+		.hidden{display:none}
+		#gameModal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);}
+		#gameModal > div{width:92vw;height:92vh;display:flex;flex-direction:column;gap:8px}
+		#modalIframe{width:100%;height:100%;border:0;border-radius:8px}
+
 		:root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#06b6d4;--glass:rgba(255,255,255,0.04)}
 		*{box-sizing:border-box}
 		body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,#070816 0%,#0b1220 100%);color:#e6eef6;line-height:1.4}
@@ -156,11 +162,58 @@
 					card.appendChild(p);
 					card.appendChild(playRow);
 					grid.appendChild(card);
-				});
-			}catch(err){
-				console.warn('Could not load games index:', err);
-				const loading = document.getElementById('gamesLoading');
-				if(loading) loading.querySelector('p').textContent = 'Place game folders under /Swipe/games and run the generator to populate this list.';
+					});
+					}
+				}catch(err){
+				console.warn('Could not load games index, falling back to directory listing:', err);
+				// Try parsing a server directory listing at /Swipe/games/
+				const fallback = await fetchGameFoldersFromDirListing();
+				if(fallback && fallback.length){
+					// build entries from folder names
+					fallback.forEach(name => {
+						const game = { name: name, title: name.replace(/[_-]/g,' ').replace(/\/.*/,'').trim(), src: 'Swipe/games/' + name };
+						// reuse rendering logic by appending to list and creating card
+						const card = document.createElement('div'); card.className = 'card';
+						const frameWrap = document.createElement('div'); frameWrap.className = 'thumb';
+						const iframe = document.createElement('iframe');
+						let iframeSrc = game.src.replace(/\/$/, '') + '/index.html';
+						iframe.src = iframeSrc;
+						iframe.style.width = '100%'; iframe.style.height = '160px'; iframe.style.border = '0'; iframe.style.borderRadius = '8px';
+						iframe.setAttribute('loading','lazy');
+						iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-pointer-lock allow-popups');
+						frameWrap.appendChild(iframe);
+						const h = document.createElement('h3'); h.textContent = game.title;
+						const p = document.createElement('p'); p.textContent = '';
+						const playRow = document.createElement('div'); playRow.style.display='flex'; playRow.style.gap='8px'; playRow.style.marginTop='8px';
+						const playBtn = document.createElement('button');
+						playBtn.className = 'btn'; playBtn.textContent = 'Play';
+						playBtn.onclick = () => { document.getElementById('modalIframe').src = iframeSrc; document.getElementById('gameModal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
+						playRow.appendChild(playBtn);
+						card.appendChild(frameWrap); card.appendChild(h); card.appendChild(p); card.appendChild(playRow); grid.appendChild(card);
+					});
+				}else{
+					const loading = document.getElementById('gamesLoading');
+					if(loading) loading.querySelector('p').textContent = 'No games found in /Swipe/games — add folders with index.html inside.';
+				}
+			}
+
+			// helper: try to fetch a directory listing and parse folder names (works with basic webserver directory indexes)
+			async function fetchGameFoldersFromDirListing(){
+				try{
+					const res = await fetch('Swipe/games/');
+					if(!res.ok) return [];
+					const text = await res.text();
+					// parse hrefs that end with '/'
+					const parser = new DOMParser();
+					const doc = parser.parseFromString(text, 'text/html');
+					const links = Array.from(doc.querySelectorAll('a'));
+					const folders = links.map(a => a.getAttribute('href')).filter(h => h && h.endsWith('/')).map(h => h.replace(/\/+$/, ''));
+					// filter out parent dir markers
+					return folders.filter(f => f && f !== '..' && f !== '.');
+				}catch(e){
+					console.warn('Directory listing fallback failed', e);
+					return [];
+				}
 			}
 		}
 
