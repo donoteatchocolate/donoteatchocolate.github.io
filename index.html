@@ -113,7 +113,7 @@
 				const list = await res.json();
 				grid.innerHTML = '';
 				if(!Array.isArray(list) || list.length === 0){
-					grid.innerHTML = '<div class="card"><div class="thumb">—</div><h3>No games</h3><p>Add .html files to /Swipe/games and run the generator.</p></div>';
+					grid.innerHTML = '<div class="card"><div class="thumb">—</div><h3>No games</h3><p>Add game folders to /Swipe/games and run the generator.</p></div>';
 					return;
 				}
 				list.forEach(game => {
@@ -121,14 +121,16 @@
 
 					const frameWrap = document.createElement('div'); frameWrap.className = 'thumb';
 					const iframe = document.createElement('iframe');
-					iframe.src = game.src;
+					// If src points to a folder, load its index.html explicitly
+					let iframeSrc = game.src;
+					if (!/\.html$/.test(iframeSrc)) iframeSrc = iframeSrc.replace(/\/$/, '') + '/index.html';
+					iframe.src = iframeSrc;
 					iframe.title = game.title || game.src;
 					iframe.style.width = '100%';
 					iframe.style.height = '160px';
 					iframe.style.border = '0';
 					iframe.style.borderRadius = '8px';
 					iframe.setAttribute('loading','lazy');
-					// sandbox: allow scripts and same-origin so games can run. Adjust if needed.
 					iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-pointer-lock allow-popups');
 					frameWrap.appendChild(iframe);
 
@@ -136,9 +138,15 @@
 					const p = document.createElement('p'); p.textContent = game.meta || '';
 
 					const playRow = document.createElement('div'); playRow.style.display='flex'; playRow.style.gap='8px'; playRow.style.marginTop='8px';
-					const openBtn = document.createElement('button'); openBtn.className='btn'; openBtn.textContent='Open';
-					openBtn.onclick = () => window.open(game.src, '_blank');
-					playRow.appendChild(openBtn);
+					// Download button: generator creates <name>.zip for folders
+					const dl = document.createElement('a');
+					dl.className = 'btn';
+					dl.textContent = 'Download';
+					const zipHref = game.zip || (game.src.replace(/\/$/, '') + '.zip');
+					dl.href = zipHref;
+					dl.setAttribute('download','');
+					dl.target = '_blank';
+					playRow.appendChild(dl);
 
 					card.appendChild(frameWrap);
 					card.appendChild(h);
@@ -148,9 +156,8 @@
 				});
 			}catch(err){
 				console.warn('Could not load games index:', err);
-				// leave the loading/placeholder card in place and show a hint
 				const loading = document.getElementById('gamesLoading');
-				if(loading) loading.querySelector('p').textContent = 'Place game .html files under /Swipe/games and run the generator to populate this list.';
+				if(loading) loading.querySelector('p').textContent = 'Place game folders under /Swipe/games and run the generator to populate this list.';
 			}
 		}
 

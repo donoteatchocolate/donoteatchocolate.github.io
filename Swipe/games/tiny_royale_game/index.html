@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiny Royale - 2D Battle Royale</title>
+    <!-- Tailwind CSS for super clean, responsive HUD and menus -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111827;
+            color: #f3f4f6;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            background-color: #14532d;
+            cursor: crosshair;
+        }
+        /* Custom scrollbars for stats panel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex items-center justify-center relative">
+
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" class="w-full h-full absolute inset-0 z-0"></canvas>
+
+    <!-- MAIN START MENU OVERLAY -->
+    <div id="startScreen" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-900/95 p-4 backdrop-blur-sm transition-all duration-300">
+        <div class="max-w-md w-full bg-gray-800/80 border border-purple-500/30 rounded-2xl p-8 shadow-2xl text-center transform scale-100 transition-transform duration-300">
+            <!-- Game Title Logo -->
+            <div class="mb-6">
+                /* Lines 47-52 omitted */
+            </div>
+
+            <!-- Choose Player Color & Gun -->
+            <div class="space-y-4 mb-6 text-left">
+                /* Lines 56-88 omitted */
+            </div>
+
+            <!-- Action Button -->
+            <button id="startBtn" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-500/30 transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-lg">
+                /* Lines 92-93 omitted */
+            </button>
+
+            <!-- Guide / Controls (ONLY DISPLAYED HERE ON MAIN MENU) -->
+            /* Lines 96-118 omitted */
+        </div>
+    </div>
+
+    <!-- HUD OVERLAY (Active during gameplay) -->
+    <div id="gameHUD" class="hidden absolute inset-0 z-5 pointer-events-none flex flex-col justify-between p-4 md:p-6 text-white">
+        <!-- TOP HUD PANEL -->
+        <div class="flex justify-between items-start w-full">
+            /* Lines 125-155 omitted */
+        </div>
+
+        <!-- CENTER CROSSHAIR / SCREEN DAMAGED VIGNETTE -->
+        <div id="vignette" class="absolute inset-0 pointer-events-none border-[0px] border-red-600/0 transition-all duration-300"></div>
+
+        <!-- BOTTOM CONTROLS & HP STATS -->
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4 w-full">
+            /* Lines 162-237 omitted */
+        </div>
+    </div>
+
+    <!-- GAME OVER / VICTORY MENU OVERLAY -->
+    <div id="gameOverScreen" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-950/95 p-4 backdrop-blur-md">
+        <div class="max-w-md w-full bg-gray-900 border-2 border-purple-500/30 rounded-2xl p-8 shadow-2xl text-center">
+/* Lines 243-280 omitted */
+        </div>
+    </div>
+
+    <!-- MAIN GAME LOGIC -->
+    <script>
+        // Create an Audio Context helper for arcade SFX
+        let audioCtx = null;
+        
+        // Spatial Audio Function: Calculates volume based on distance to the player
+        function playSfx(type, x, y) {/* Lines 290-403 omitted */}
+
+        // Configuration and Constants
+        const CONFIG = {/* Lines 407-453 omitted */};
+
+        // DOM elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const miniCtx = minimapCanvas.getContext('2d');
+
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const gameHUD = document.getElementById('gameHUD');
+
+        // HUD live displays
+        const hudAlive = document.getElementById('hudAlive');
+        const hudKills = document.getElementById('hudKills');
+        const hudHpText = document.getElementById('hudHpText');
+        const hudHpBar = document.getElementById('hudHpBar');
+        const hudShieldText = document.getElementById('hudShieldText');
+        const hudShieldBar = document.getElementById('hudShieldBar');
+        const hudPlatesText = document.getElementById('hudPlatesText');
+        const hudPlatesRegen = document.getElementById('hudPlatesRegen');
+        const hudStimsText = document.getElementById('hudStimsText');
+        const hudGrenadesText = document.getElementById('hudGrenadesText');
+        const hudWeaponName = document.getElementById('hudWeaponName');
+        const hudWeaponIcon = document.getElementById('hudWeaponIcon');
+        const stormWarning = document.getElementById('stormWarning');
+        const stormTimerText = document.getElementById('stormTimerText');
+        const stormStatusAlert = document.getElementById('stormStatusAlert');
+        const vignette = document.getElementById('vignette');
+
+        // Game over screen displays
+        const resultLabel = document.getElementById('resultLabel');
+        const resultSub = document.getElementById('resultSub');
+        const resKills = document.getElementById('resKills');
+        const resTime = document.getElementById('resTime');
+        const resScore = document.getElementById('resScore');
+        const feedList = document.getElementById('feedList');
+
+        // User Customization Variables (Configured on Menu)
+        let selectedColor = '#3b82f6';
+        let selectedWeaponKey = 'AssaultRifle';
+
+        // Set up selectors
+        document.querySelectorAll('.color-btn').forEach(btn => {/* Lines 499-507 omitted */});
+        });
+
+        document.querySelectorAll('.weapon-btn').forEach(btn => {/* Lines 511-519 omitted */});
+        });
+
+        // Procedural Grass Tufts Generation coordinates
+        let grassTufts = [];
+        function initGrass() {/* Lines 525-533 omitted */}
+
+        // Map obstacles (Procedurally set for layouts inside the expanded 3000x3000px environment)
+        let obstacles = [];
+        function initObstacles() {/* Lines 538-572 omitted */}
+
+        // Game State Variables
+        let isGameActive = false;
+        let gameStartTime = 0;
+        let matchDuration = 0;
+        let combatLog = [];
+
+        // Entities arrays
+        let player = null;
+        let bots = [];
+        let bullets = [];
+        let grenades = [];
+        let particles = [];
+
+        // Inputs trackers
+        const keys = { w: false, a: false, s: false, d: false };
+        const mouse = { x: 0, y: 0 };
+
+        // Safe zone (The Storm) parameters
+        let storm = {/* Lines 593-603 omitted */};
+
+        // Track screen viewport bounds
+        let viewport = {/* Lines 607-611 omitted */};
+
+        // Window resize compliance
+        window.addEventListener('resize', () => {
+            /* Lines 615-618 omitted */
+            viewport.height = window.innerHeight;
+        });
+
+        // Initialize Canvas Bounds initially
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Input Setup
+        window.addEventListener('keydown', (e) => {
+        });
+
+        window.addEventListener('keyup', (e) => {
+            /* Lines 656-660 omitted */
+            if (k === 'd') keys.d = false;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            /* Lines 664-665 omitted */
+            mouse.y = e.clientY;
+        });
+
+        // Shoot trigger
+        window.addEventListener('mousedown', (e) => {
+        });
+
+        window.addEventListener('mouseup', (e) => {
+        });
+
+        // Touch swipe alternative triggers
+        let touchStartPos = null;
+        window.addEventListener('touchstart', (e) => {
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+            /* Lines 716-723 omitted */
+            touchStartPos = null;
+        });
+
+        // Entity Constructors
+        class Combatant {/* Lines 728-1107 omitted */}
+
+        class Bullet {/* Lines 1110-1217 omitted */}
+
+        class Grenade {/* Lines 1220-1364 omitted */}
+
+        class Particle {/* Lines 1367-1395 omitted */}
+
+        // Particle Generators
+        function spawnImpactParticles(x, y, color, count) {/* Lines 1399-1402 omitted */}
+
+        // Add dynamically updated kill feeds
+        function addToFeedList(text) {/* Lines 1406-1413 omitted */}
+
+        // Proc-gen names lists for dynamic lobbies
+        const prefixes = ["Alpha", "Beta", "Shadow", "Apex", "Storm", "Hyper", "Cyber", "Swift", "Viper", "Sly", "Wild", "Mega", "Rogue", "Ghost", "Neon", "Void"];
+        const suffixes = ["Raptor", "Scarab", "Sniper", "Knight", "Hunter", "Wombat", "Reaper", "Wolf", "Strike", "Blaze", "Fury", "Vortex", "Slayer", "Titan"];
+
+        function generateBotName() {/* Lines 1420-1423 omitted */}
+
+        // Initialization / Restart
+        function startGame() {/* Lines 1427-1478 omitted */}
+
+        // MAIN TICK GAME LOOP
+        function gameLoop() {/* Lines 1482-1488 omitted */}
+
+        // Core physics / simulation step
+        function update() {/* Lines 1492-1602 omitted */}
+
+        // Shrinking Ring mechanics (The Storm)
+        function updateStorm() {/* Lines 1606-1689 omitted */}
+
+        // Draw operations
+        function draw() {/* Lines 1693-1845 omitted */}
+
+        // Draw Ring Safe Zone bounds visualizers
+        function drawStormBorder() {/* Lines 1849-1866 omitted */}
+
+        // Simple real-time Vector Minimap Renderer
+        function drawMinimap() {/* Lines 1870-1905 omitted */}
+
+        // Final Resolution
+        function endGame(isVictory) {/* Lines 1909-1937 omitted */}
+
+        // Interface event wires
+        startBtn.addEventListener('click', startGame);
+        
+        // Return to Main Menu button click handler
+        restartBtn.addEventListener('click', () => {
+            /* Lines 1944-1945 omitted */
+            startScreen.classList.remove('hidden');
+        });
+
+        // Preload default selected settings layout
+        selectedColor = '#3b82f6';
+        selectedWeaponKey = 'AssaultRifle';
+    </script>
+</body>
+</html>
