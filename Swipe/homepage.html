@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Swipe — Play free browser games</title>
+	<meta name="description" content="Swipe is a lightweight game platform for quick browser games. Play, discover, and share games — coming soon." />
+	<link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+	<style>
+		:root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#06b6d4;--glass:rgba(255,255,255,0.04)}
+		*{box-sizing:border-box}
+		body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,#070816 0%,#0b1220 100%);color:#e6eef6;line-height:1.4}
+		.container{max-width:1100px;margin:0 auto;padding:28px}
+		header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+		.brand{display:flex;align-items:center;gap:12px}
+		.logo{width:44px;height:44;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700;color:#041025}
+		nav a{color:var(--muted);text-decoration:none;margin-left:18px;font-weight:600}
+		.cta{display:flex;gap:12px;align-items:center}
+		.btn{background:var(--accent);color:#041025;padding:8px 14px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
+		.hero{display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:center;margin:40px 0}
+		.hero h1{font-size:44px;margin:0 0 12px}
+		.hero p{color:var(--muted);margin:0 0 18px}
+		.search{display:flex;background:var(--card);padding:10px;border-radius:12px;gap:8px;align-items:center}
+		.search input{flex:1;background:transparent;border:0;color:inherit;outline:none;font-size:16px}
+		.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-top:18px}
+		.card{background:var(--card);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+		.thumb{height:110px;border-radius:8px;background:linear-gradient(135deg,#0b1220,#071025);display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700}
+		.card h3{margin:10px 0 4px;font-size:16px}
+		.card p{margin:0;color:var(--muted);font-size:13px}
+		footer{margin:48px 0 28px;color:var(--muted);font-size:14px;text-align:center}
+		@media (max-width:880px){.hero{grid-template-columns:1fr;}.hero h1{font-size:32px}.container{padding:18px}}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<header>
+			<div class="brand">
+				<div class="logo">S</div>
+				<div>
+					<div style="font-weight:800;font-size:18px">Swipe</div>
+					<div style="font-size:12px;color:var(--muted);margin-top:2px">Casual browser games</div>
+				</div>
+			</div>
+			<div style="display:flex;align-items:center;gap:18px">
+				<nav aria-label="Main navigation">
+					<a href="#games">Games</a>
+					<a href="#about">About</a>
+					<a href="#contact">Contact</a>
+				</nav>
+				<div class="cta">
+					<button class="btn" title="Sign in">Sign in</button>
+				</div>
+			</div>
+		</header>
+
+		<section class="hero" aria-labelledby="hero-title">
+			<div>
+				<h1 id="hero-title">Play fun browser games. Fast.</h1>
+				<p>Swipe is a lightweight game platform — discover, play, and share short games. We're launching our catalog soon; meanwhile, explore what's coming.</p>
+				<div style="display:flex;gap:10px;flex-wrap:wrap">
+					<button class="btn" onclick="scrollToGames()">Explore games</button>
+					<button style="background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px;color:var(--muted)" onclick="alert('Feature coming soon')">Developer? Submit a game</button>
+				</div>
+				<div style="margin-top:18px">
+					<div class="search" role="search" aria-label="Search games">
+						<input id="search" placeholder="Search games, genres, or tags" aria-label="Search games" />
+						<button class="btn" onclick="doSearch()">Search</button>
+					</div>
+				</div>
+			</div>
+			<aside>
+				<div style="background:var(--glass);padding:16px;border-radius:12px">
+					<div style="font-weight:700;margin-bottom:8px">Featured</div>
+					<div style="display:grid;gap:8px">
+						<div style="display:flex;gap:10px;align-items:center"><div style="width:44px;height:44;border-radius:8px;background:#071025"></div><div style="color:var(--muted)">Coming soon</div></div>
+						<div style="display:flex;gap:10px;align-items:center"><div style="width:44px;height:44;border-radius:8px;background:#071025"></div><div style="color:var(--muted)">Arcade</div></div>
+					</div>
+				</div>
+			</aside>
+		</section>
+
+		<main>
+			<section id="games">
+				<h2 style="margin:0 0 12px">Games</h2>
+				<div class="games-grid" id="gamesGrid">
+					<!-- Placeholder cards; replace with dynamic content later -->
+					<div class="card"><div class="thumb">TBD</div><h3>Game One</h3><p>Action • 1 player</p></div>
+					<div class="card"><div class="thumb">TBD</div><h3>Game Two</h3><p>Puzzle • Casual</p></div>
+					<div class="card"><div class="thumb">TBD</div><h3>Game Three</h3><p>Arcade • Highscore</p></div>
+					<div class="card"><div class="thumb">TBD</div><h3>Game Four</h3><p>Multiplayer • Soon</p></div>
+				</div>
+			</section>
+
+			<section id="about" style="margin-top:32px">
+				<h2 style="margin:0 0 8px">About Swipe</h2>
+				<p style="color:var(--muted);max-width:70ch">Swipe aims to be a friendly place to play short browser games without downloads. We'll curate a variety of genres, add leaderboards, and make it easy for developers to publish playable web games.</p>
+			</section>
+		</main>
+
+		<footer>
+			<div style="margin-top:28px;color:var(--muted)">© <span id="year"></span> Swipe — Built for quick play. Follow us on social for updates.</div>
+		</footer>
+	</div>
+
+	<script>
+		document.getElementById('year').textContent = new Date().getFullYear();
+		function scrollToGames(){document.getElementById('games').scrollIntoView({behavior:'smooth'})}
+		function doSearch(){const q=document.getElementById('search').value.trim();if(!q){alert('Type a search term');return;}alert('Search for: '+q)}
+	</script>
+</body>
+</html>
+
